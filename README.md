@@ -31,6 +31,7 @@ The suite checks that a shopper can sign in, sort the catalog, change the cart, 
 │   ├── inventory.spec.ts
 │   ├── cart.spec.ts
 │   └── checkout.spec.ts
+├── LEARNING.md                        # design notes
 └── playwright.config.ts
 ```
 
@@ -49,6 +50,8 @@ Three pieces connect, and each one has a single job.
 SauceDemo stores the session in a cookie named `session-username`. That is why one `storageState` file works in Firefox after Chromium created it. The cart lives in `localStorage` under `cart-contents`. Each test gets its own copy of the file, so adding an item in one test does not leak into the next.
 
 The alternative was the previous fixture, which signed in through the UI before every test. That works, and it keeps tests independent, but it repeats the login journey inside cart and checkout failures and spends a navigation on every test. A `globalSetup` script can also write the file. A setup project is used here because it shows up in the report as its own test, and Playwright runs it automatically as a dependency.
+
+Design notes: [LEARNING.md](LEARNING.md).
 
 ## How to run locally
 
