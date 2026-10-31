@@ -27,6 +27,28 @@ test.describe('Login', () => {
     await expect(loginPage.error).toHaveText(messages.invalid);
   });
 
+  const missingCredentials = [
+    {
+      field: 'username',
+      username: '',
+      password: users.standard.password,
+      error: messages.usernameRequired,
+    },
+    {
+      field: 'password',
+      username: users.standard.username,
+      password: '',
+      error: messages.passwordRequired,
+    },
+  ];
+
+  for (const missing of missingCredentials) {
+    test(`shows an error when ${missing.field} is empty @regression`, async ({ loginPage }) => {
+      await loginPage.login(missing.username, missing.password);
+      await expect(loginPage.error).toHaveText(missing.error);
+    });
+  }
+
   test('problem user logs in but sees broken product images @regression', async ({
     page,
     loginPage,

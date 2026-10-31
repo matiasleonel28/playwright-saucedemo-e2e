@@ -12,6 +12,7 @@ test.describe('Checkout', () => {
   test('complete purchase end to end @smoke', async ({ page, checkoutPage }) => {
     await checkoutPage.fillInformation(customer);
     await expect(page).toHaveURL(/checkout-step-two\.html/);
+    expect(await checkoutPage.itemNames()).toEqual([products.backpack.name, products.bikeLight.name]);
 
     const { subtotal, tax, total } = await checkoutPage.totals();
     const expected = expectedOrder([products.backpack.price, products.bikeLight.price]);
@@ -48,4 +49,14 @@ test.describe('Checkout', () => {
       await expect(page).toHaveURL(/checkout-step-one\.html/);
     });
   }
+
+  test('cancel on the information step returns to the cart @regression', async ({
+    page,
+    checkoutPage,
+    cartPage,
+  }) => {
+    await checkoutPage.cancel();
+    await expect(page).toHaveURL(/cart\.html/);
+    expect(await cartPage.itemNames()).toEqual([products.backpack.name, products.bikeLight.name]);
+  });
 });

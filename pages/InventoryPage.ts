@@ -19,7 +19,8 @@ export class InventoryPage {
     this.sortSelect = page.getByTestId('product-sort-container');
     this.cartBadge = page.getByTestId('shopping-cart-badge');
     this.cartLink = page.getByTestId('shopping-cart-link');
-    this.openMenuButton = page.getByTestId('open-menu');
+    // data-test="open-menu" is on the icon. The button in front of it receives the click.
+    this.openMenuButton = page.getByRole('button', { name: 'Open Menu' });
     this.logoutLink = page.getByRole('button', { name: 'Logout' });
   }
 
