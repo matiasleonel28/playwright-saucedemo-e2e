@@ -1,10 +1,10 @@
 import { test, expect } from '../fixtures/test';
-import { customer, messages, products } from '../data/testData';
+import { customer, expectedOrder, messages, products } from '../data/testData';
 
 test.describe('Checkout', () => {
   test.beforeEach(async ({ loggedInPage, cartPage }) => {
-    await loggedInPage.addToCart(products.backpack);
-    await loggedInPage.addToCart(products.bikeLight);
+    await loggedInPage.addToCart(products.backpack.name);
+    await loggedInPage.addToCart(products.bikeLight.name);
     await loggedInPage.openCart();
     await cartPage.checkout();
   });
@@ -14,7 +14,9 @@ test.describe('Checkout', () => {
     await expect(page).toHaveURL(/checkout-step-two\.html/);
 
     const { subtotal, tax, total } = await checkoutPage.totals();
-    expect(subtotal).toBeCloseTo(29.99 + 9.99, 2);
+    const expected = expectedOrder([products.backpack.price, products.bikeLight.price]);
+    expect(subtotal).toBeCloseTo(expected.subtotal, 2);
+    expect(tax).toBeCloseTo(expected.tax, 2);
     expect(total).toBeCloseTo(subtotal + tax, 2);
 
     await checkoutPage.finish();
