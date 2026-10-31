@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { standardUserAuthFile } from './fixtures/auth';
 
 export default defineConfig({
   testDir: './tests',
@@ -15,7 +16,18 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    ...(process.env.FIREFOX ? [{ name: 'firefox', use: { ...devices['Desktop Firefox'] } }] : []),
+    // Signs in once and writes the auth file. The filename is *.setup.ts, so the
+    // browser projects (whose default match is *.spec.ts) do not run it again.
+    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], storageState: standardUserAuthFile },
+      dependencies: ['setup'],
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'], storageState: standardUserAuthFile },
+      dependencies: ['setup'],
+    },
   ],
 });

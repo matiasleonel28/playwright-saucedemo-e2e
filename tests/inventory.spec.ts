@@ -1,6 +1,15 @@
 import { test, expect } from '../fixtures/test';
 
 test.describe('Inventory sorting', () => {
+  test('sort by name A to Z @regression', async ({ loggedInPage }) => {
+    // The catalog already opens in A to Z. Leave that order and come back,
+    // or this passes even when the A to Z option does nothing.
+    await loggedInPage.sortBy('za');
+    await loggedInPage.sortBy('az');
+    const names = await loggedInPage.productNames();
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+  });
+
   test('sort by name Z to A @regression', async ({ loggedInPage }) => {
     await loggedInPage.sortBy('za');
     const names = await loggedInPage.productNames();

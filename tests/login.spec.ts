@@ -1,5 +1,9 @@
 import { test, expect } from '../fixtures/test';
-import { users, messages } from '../data/testData';
+import { messages, titles, users } from '../data/testData';
+
+// This file drives the login form, so it starts with no saved session.
+// Every other spec reuses the session created by tests/auth.setup.ts.
+test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Login', () => {
   test.beforeEach(async ({ loginPage }) => {
@@ -9,7 +13,7 @@ test.describe('Login', () => {
   test('standard user can log in @smoke', async ({ page, loginPage, inventoryPage }) => {
     await loginPage.login(users.standard.username, users.standard.password);
     await expect(page).toHaveURL(/inventory\.html/);
-    await expect(inventoryPage.title).toHaveText('Products');
+    await expect(inventoryPage.title).toHaveText(titles.inventory);
   });
 
   test('locked out user sees an error @regression', async ({ page, loginPage }) => {
@@ -23,20 +27,43 @@ test.describe('Login', () => {
     await expect(loginPage.error).toHaveText(messages.invalid);
   });
 
-  test('problem user logs in but sees broken product images @regression', async ({ page, loginPage }) => {
+  const missingCredentials = [
+    {
+      field: 'username',
+      username: '',
+      password: users.standard.password,
+      error: messages.usernameRequired,
+    },
+    {
+      field: 'password',
+      username: users.standard.username,
+      password: '',
+      error: messages.passwordRequired,
+    },
+  ];
+
+  for (const missing of missingCredentials) {
+    test(`shows an error when ${missing.field} is empty @regression`, async ({ loginPage }) => {
+      await loginPage.login(missing.username, missing.password);
+      await expect(loginPage.error).toHaveText(missing.error);
+    });
+  }
+
+  test('problem user logs in but sees broken product images @regression', async ({
+    page,
+    loginPage,
+    inventoryPage,
+  }) => {
     await loginPage.login(users.problem.username, users.problem.password);
     await expect(page).toHaveURL(/inventory\.html/);
-    const srcs = await page
-      .locator('img.inventory_item_img')
-      .evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src')));
+    const sources = await inventoryPage.productImageSources();
+    expect(sources.length).toBeGreaterThan(1);
     // Known defect of problem_user: every product shows the same image.
-    expect(new Set(srcs).size).toBe(1);
+    expect(new Set(sources).size).toBe(1);
   });
 
-  test('inventory is protected when not logged in @regression', async ({ page, loginPage }) => {
-    await page.goto('/inventory.html');
-    await expect(loginPage.error).toContainText(
-      "You can only access '/inventory.html' when you are logged in",
-    );
+  test('inventory is protected when not logged in @regression', async ({ loginPage, inventoryPage }) => {
+    await inventoryPage.goto();
+    await expect(loginPage.error).toHaveText(messages.inventoryRequiresLogin);
   });
 });

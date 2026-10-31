@@ -1,11 +1,10 @@
 import { test, expect } from '../fixtures/test';
-import { CheckoutPage } from '../pages/CheckoutPage';
-import { customer, messages, products } from '../data/testData';
+import { customer, expectedOrder, messages, products } from '../data/testData';
 
 test.describe('Checkout', () => {
   test.beforeEach(async ({ loggedInPage, cartPage }) => {
-    await loggedInPage.addToCart(products.backpack);
-    await loggedInPage.addToCart(products.bikeLight);
+    await loggedInPage.addToCart(products.backpack.name);
+    await loggedInPage.addToCart(products.bikeLight.name);
     await loggedInPage.openCart();
     await cartPage.checkout();
   });
@@ -13,11 +12,12 @@ test.describe('Checkout', () => {
   test('complete purchase end to end @smoke', async ({ page, checkoutPage }) => {
     await checkoutPage.fillInformation(customer);
     await expect(page).toHaveURL(/checkout-step-two\.html/);
+    expect(await checkoutPage.itemNames()).toEqual([products.backpack.name, products.bikeLight.name]);
 
-    const subtotal = CheckoutPage.amount(await checkoutPage.subtotal.textContent());
-    const tax = CheckoutPage.amount(await checkoutPage.tax.textContent());
-    const total = CheckoutPage.amount(await checkoutPage.total.textContent());
-    expect(subtotal).toBeCloseTo(29.99 + 9.99, 2);
+    const { subtotal, tax, total } = await checkoutPage.totals();
+    const expected = expectedOrder([products.backpack.price, products.bikeLight.price]);
+    expect(subtotal).toBeCloseTo(expected.subtotal, 2);
+    expect(tax).toBeCloseTo(expected.tax, 2);
     expect(total).toBeCloseTo(subtotal + tax, 2);
 
     await checkoutPage.finish();
@@ -49,4 +49,14 @@ test.describe('Checkout', () => {
       await expect(page).toHaveURL(/checkout-step-one\.html/);
     });
   }
+
+  test('cancel on the information step returns to the cart @regression', async ({
+    page,
+    checkoutPage,
+    cartPage,
+  }) => {
+    await checkoutPage.cancel();
+    await expect(page).toHaveURL(/cart\.html/);
+    expect(await cartPage.itemNames()).toEqual([products.backpack.name, products.bikeLight.name]);
+  });
 });
