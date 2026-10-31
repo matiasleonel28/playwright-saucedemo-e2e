@@ -11,6 +11,7 @@ export class CheckoutPage {
   readonly tax: Locator;
   readonly total: Locator;
   readonly completeHeader: Locator;
+  readonly cancelButton: Locator;
 
   constructor(private readonly page: Page) {
     this.firstName = page.getByTestId('firstName');
@@ -23,6 +24,7 @@ export class CheckoutPage {
     this.tax = page.getByTestId('tax-label');
     this.total = page.getByTestId('total-label');
     this.completeHeader = page.getByTestId('complete-header');
+    this.cancelButton = page.getByTestId('cancel');
   }
 
   async fillInformation(info: { firstName?: string; lastName?: string; postalCode?: string }) {
@@ -32,11 +34,33 @@ export class CheckoutPage {
     await this.continueButton.click();
   }
 
-  static amount(text: string | null): number {
-    return Number((text ?? '').replace(/[^0-9.]/g, ''));
+  async itemNames(): Promise<string[]> {
+    return this.page.getByTestId('inventory-item-name').allTextContents();
+  }
+
+  /** Subtotal, tax, and total parsed from the overview labels. */
+  async totals(): Promise<{ subtotal: number; tax: number; total: number }> {
+    const [subtotal, tax, total] = await Promise.all([
+      this.subtotal.textContent(),
+      this.tax.textContent(),
+      this.total.textContent(),
+    ]);
+    return {
+      subtotal: parseAmount(subtotal),
+      tax: parseAmount(tax),
+      total: parseAmount(total),
+    };
   }
 
   async finish() {
     await this.finishButton.click();
   }
+
+  async cancel() {
+    await this.cancelButton.click();
+  }
+}
+
+function parseAmount(text: string | null): number {
+  return Number((text ?? '').replace(/[^0-9.]/g, ''));
 }

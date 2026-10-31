@@ -27,18 +27,21 @@ test.describe('Login', () => {
     await expect(loginPage.error).toHaveText(messages.invalid);
   });
 
-  test('problem user logs in but sees broken product images @regression', async ({ page, loginPage }) => {
+  test('problem user logs in but sees broken product images @regression', async ({
+    page,
+    loginPage,
+    inventoryPage,
+  }) => {
     await loginPage.login(users.problem.username, users.problem.password);
     await expect(page).toHaveURL(/inventory\.html/);
-    const srcs = await page
-      .locator('img.inventory_item_img')
-      .evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute('src')));
+    const sources = await inventoryPage.productImageSources();
+    expect(sources.length).toBeGreaterThan(1);
     // Known defect of problem_user: every product shows the same image.
-    expect(new Set(srcs).size).toBe(1);
+    expect(new Set(sources).size).toBe(1);
   });
 
-  test('inventory is protected when not logged in @regression', async ({ page, loginPage }) => {
-    await page.goto('/inventory.html');
+  test('inventory is protected when not logged in @regression', async ({ loginPage, inventoryPage }) => {
+    await inventoryPage.goto();
     await expect(loginPage.error).toContainText(
       "You can only access '/inventory.html' when you are logged in",
     );

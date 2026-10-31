@@ -1,5 +1,4 @@
 import { test, expect } from '../fixtures/test';
-import { CheckoutPage } from '../pages/CheckoutPage';
 import { customer, messages, products } from '../data/testData';
 
 test.describe('Checkout', () => {
@@ -14,9 +13,7 @@ test.describe('Checkout', () => {
     await checkoutPage.fillInformation(customer);
     await expect(page).toHaveURL(/checkout-step-two\.html/);
 
-    const subtotal = CheckoutPage.amount(await checkoutPage.subtotal.textContent());
-    const tax = CheckoutPage.amount(await checkoutPage.tax.textContent());
-    const total = CheckoutPage.amount(await checkoutPage.total.textContent());
+    const { subtotal, tax, total } = await checkoutPage.totals();
     expect(subtotal).toBeCloseTo(29.99 + 9.99, 2);
     expect(total).toBeCloseTo(subtotal + tax, 2);
 
