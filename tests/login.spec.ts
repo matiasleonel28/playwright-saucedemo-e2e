@@ -1,6 +1,10 @@
 import { test, expect } from '../fixtures/test';
 import { users, messages } from '../data/testData';
 
+// This file drives the login form, so it starts with no saved session.
+// Every other spec reuses the session created by tests/auth.setup.ts.
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe('Login', () => {
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.goto();

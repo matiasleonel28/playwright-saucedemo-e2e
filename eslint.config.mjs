@@ -4,7 +4,7 @@ import playwright from 'eslint-plugin-playwright';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['node_modules', 'playwright-report', 'test-results'] },
+  { ignores: ['node_modules', 'playwright-report', 'test-results', 'playwright/.auth'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { ...playwright.configs['flat/recommended'], files: ['tests/**'] },

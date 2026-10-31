@@ -3,14 +3,13 @@ import { LoginPage } from '../pages/LoginPage';
 import { InventoryPage } from '../pages/InventoryPage';
 import { CartPage } from '../pages/CartPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
-import { users } from '../data/testData';
 
 type Pages = {
   loginPage: LoginPage;
   inventoryPage: InventoryPage;
   cartPage: CartPage;
   checkoutPage: CheckoutPage;
-  /** Inventory page already authenticated as standard_user. */
+  /** Inventory opened with the standard_user session from storageState. */
   loggedInPage: InventoryPage;
 };
 
@@ -20,11 +19,10 @@ export const test = base.extend<Pages>({
   cartPage: async ({ page }, use) => use(new CartPage(page)),
   checkoutPage: async ({ page }, use) => use(new CheckoutPage(page)),
   loggedInPage: async ({ page }, use) => {
-    const login = new LoginPage(page);
-    await login.goto();
-    await login.login(users.standard.username, users.standard.password);
+    const inventoryPage = new InventoryPage(page);
+    await inventoryPage.goto();
     await expect(page).toHaveURL(/inventory\.html/);
-    await use(new InventoryPage(page));
+    await use(inventoryPage);
   },
 });
 
